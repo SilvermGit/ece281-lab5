@@ -44,7 +44,7 @@ architecture Behavioral of ALU is
     signal w_and : std_logic_vector (7 downto 0):= "00000000";
     signal w_or : std_logic_vector (7 downto 0) := "00000000";
     signal w_add : std_logic_vector (7 downto 0):= "00000000";
-    signal w_flags : std_logic_vector (13 downto 0) := "00000000";
+    signal w_flags : std_logic_vector (13 downto 0) := "00000000000000";
     signal w_carry_add: std_logic_vector (8 downto 0) := "000000000";
     signal w_carry_full: std_logic_vector (8 downto 0) := "000000000";
     signal w_carry_full2: std_logic_vector (8 downto 0) := "000000000";
