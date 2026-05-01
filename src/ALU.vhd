@@ -40,14 +40,14 @@ entity ALU is
 end ALU;
        
     
---architecture Behavioral of ALU is
---    component ripple_adder is
---    Port ( A : in STD_LOGIC_VECTOR (7 downto 0);
---           B : in STD_LOGIC_VECTOR (7 downto 0);
---           Cin : in STD_LOGIC;
---           S : out STD_LOGIC_VECTOR (7 downto 0);
---           Cout : out STD_LOGIC);
---    end component ripple_adder;
+architecture Behavioral of ALU is
+    component ripple_adder is
+    Port ( A : in STD_LOGIC_VECTOR (7 downto 0);
+           B : in STD_LOGIC_VECTOR (7 downto 0);
+           Cin : in STD_LOGIC;
+           S : out STD_LOGIC_VECTOR (7 downto 0);
+           Cout : out STD_LOGIC);
+    end component ripple_adder;
     signal w_and : std_logic_vector (7 downto 0):= "00000000";
     signal w_or : std_logic_vector (7 downto 0) := "00000000";
     signal w_add : std_logic_vector (7 downto 0):= "00000000";
@@ -86,7 +86,7 @@ begin
     
     
     
-    ripple_adder_component : entity work.ripple_adder
+    ripple_adder_component : ripple_adder
     port map (
         A => i_A,
         B => i_B,
@@ -104,7 +104,7 @@ begin
     w_inverted(6) <= not i_B(6);
     w_inverted(7) <= not i_B(7);
      
-    ripple_subtractor_component : entity work.ripple_adder
+    ripple_subtractor_component : ripple_adder
     port map (
         A => i_A,
         B => w_inverted,
