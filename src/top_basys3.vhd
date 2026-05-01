@@ -78,7 +78,9 @@ architecture top_basys3_arch of top_basys3 is
     end component clock_divider;
   
     component controller_fsm is
-        Port ( i_reset : in STD_LOGIC;
+        Port ( 
+               i_clk : in STD_LOGIC;
+               i_reset : in STD_LOGIC;
                i_adv : in STD_LOGIC;
                o_cycle : out STD_LOGIC_VECTOR (3 downto 0));
     end component controller_fsm;
@@ -118,7 +120,6 @@ architecture top_basys3_arch of top_basys3 is
     signal w_A: std_logic_vector (7 downto 0);
     signal w_B: std_logic_vector (7 downto 0);
     signal w_bin: std_logic_vector (7 downto 0);
-    signal w_hex: std_logic_vector (3 downto 0);
     signal w_seg: std_logic_vector (6 downto 0);
     signal w_sel: std_logic_vector (3 downto 0);
     
@@ -126,29 +127,30 @@ architecture top_basys3_arch of top_basys3 is
 begin
 	-- PORT MAPS ----------------------------------------
     clkdiv_inst1 : clock_divider 		--instantiation of clock_divider to take 
-        generic map ( k_DIV => 100000) -- 1 Hz clock from 100 MHz
+        generic map ( k_DIV => 100000) -- 1000 Hz clock from 100 MHz
         port map (						  
-            i_clk   => w_adv, 
+            i_clk   => clk, 
             i_reset => btnU,
             o_clk   => w_clk
         );
     button_debounce_inst1 : button_debounce
         port map(	
-            clk => w_clk,
+            clk => clk,
             reset => BtnU,
             button => BtnC,
             action => w_adv
         );
     controller_fsm_inst1 : controller_fsm
         port map(
+            i_clk => clk,
             i_reset => BtnU,
             i_adv => w_adv,
             o_cycle => w_cycle
         );
         
-    w_A <= sw(7 downto 0) when (w_cycle = "0001");
+    w_A <= sw(7 downto 0) when (w_cycle = "0010") else "00000000";
     
-    w_B <= sw(7 downto 0) when (w_cycle = "0010");
+    w_B <= sw(7 downto 0) when (w_cycle = "0100") else "00000000";
     
     ALU_inst1 : ALU
         port map(
@@ -189,7 +191,7 @@ begin
         w_sel;    
 	sevenseg_decoder_inst1 : sevenseg_decoder
 	   port map(
-	       i_hex => w_hex,
+	       i_hex => w_data,
 	       o_seg_n => w_seg
 	   );
 	
@@ -199,6 +201,7 @@ begin
 	
 	-- CONCURRENT STATEMENTS ----------------------------
 	led(11 downto 4) <= "00000000";
+	led (3 downto 0) <= w_cycle;
 	
 	
 end top_basys3_arch;

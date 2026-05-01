@@ -33,6 +33,7 @@ use IEEE.STD_LOGIC_1164.ALL;
 
 entity controller_fsm is
     Port ( i_reset : in STD_LOGIC;
+           i_clk: in STD_LOGIC;
            i_adv : in STD_LOGIC;
            o_cycle : out STD_LOGIC_VECTOR (3 downto 0));
 end controller_fsm;
@@ -42,12 +43,12 @@ architecture FSM of controller_fsm is
     
     signal f_Q, f_Q_next: sm_controller;
 begin
-    state_process: process(i_adv)
+    state_process: process(i_clk)
     begin
-        if (rising_edge(i_adv)) then
+        if rising_edge(i_clk) then        -- only update state on clock edge
             if (i_reset = '1') then
-                f_Q <= s_controller1;
-            else 
+                    f_Q <= s_controller1;
+            else            
                 case f_Q is
                     when s_controller1 => 
                         if (i_adv = '1') then f_Q_next <= s_controller2; end if;
