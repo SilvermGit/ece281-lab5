@@ -27,10 +27,12 @@ architecture testbench of ALU_tb is
         );
     end component;
 
+
     -- DUT I/O signals
     signal w_A, w_B, w_result : std_logic_vector(7 downto 0) := (others => '0');
     signal w_op     : std_logic_vector(2 downto 0) := (others => '0');
     signal w_flags  : std_logic_vector(3 downto 0) := (others => '0');
+    
 
     -- Convenience op-codes (only the LSB two bits are required by Table 5-1,
     constant OP_ADD : std_logic_vector(2 downto 0) := "000";  -- 00
@@ -53,6 +55,7 @@ begin
             o_result => w_result,
             o_flags  => w_flags
         );
+        
 
     --------------------------------------------------------------------------
     --  Test-plan process
@@ -170,9 +173,10 @@ begin
 
         ----------------------------------------------------------------------------
         --  All tests passed
-        ----------------------------------------------------------------------------
+        ----------------------------------------------------------------------------\    
         report "ALU test-bench completed successfully!" severity note;
         wait;   -- stop simulation
+        
     end process;
 
 end testbench;

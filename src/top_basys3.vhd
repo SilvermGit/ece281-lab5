@@ -70,7 +70,7 @@ architecture top_basys3_arch of top_basys3 is
     component clock_divider is
         generic ( constant k_DIV : natural := 2	); -- How many clk cycles until slow clock toggles
                                                    -- Effectively, you divide the clk double this 
-                                                   -- number (e.g., k_DIV := 2 --> clock divider of 4)
+                                                  -- number (e.g., k_DIV := 2 --> clock divider of 4)
         port ( 	i_clk    : in std_logic;
                 i_reset  : in std_logic;		   -- asynchronous
                 o_clk    : out std_logic		   -- divided (slow) clock
@@ -78,11 +78,11 @@ architecture top_basys3_arch of top_basys3 is
     end component clock_divider;
   
     component controller_fsm is
-        Port ( 
-               i_clk : in STD_LOGIC;
-               i_reset : in STD_LOGIC;
-               i_adv : in STD_LOGIC;
-               o_cycle : out STD_LOGIC_VECTOR (3 downto 0));
+    Port ( i_reset : in STD_LOGIC;
+           i_adv : in STD_LOGIC;
+           i_clk : in STD_LOGIC;
+           o_cycle : out STD_LOGIC_VECTOR (3 downto 0)
+        );
     end component controller_fsm;
     
     component TDM4 is
@@ -127,7 +127,7 @@ architecture top_basys3_arch of top_basys3 is
 begin
 	-- PORT MAPS ----------------------------------------
     clkdiv_inst1 : clock_divider 		--instantiation of clock_divider to take 
-        generic map ( k_DIV => 100000) -- 1000 Hz clock from 100 MHz
+        generic map ( k_DIV => 100000) -- 50 kHz clock from 100 MHz
         port map (						  
             i_clk   => clk, 
             i_reset => btnU,
@@ -142,15 +142,24 @@ begin
         );
     controller_fsm_inst1 : controller_fsm
         port map(
-            i_clk => clk,
             i_reset => BtnU,
             i_adv => w_adv,
+            i_clk => clk,
             o_cycle => w_cycle
         );
         
-    w_A <= sw(7 downto 0) when (w_cycle = "0010") else "00000000";
-    
-    w_B <= sw(7 downto 0) when (w_cycle = "0100") else "00000000";
+        
+    w_input_clock : process(clk)
+        begin
+            if rising_edge(clk) then
+                if w_cycle = "0001" then
+                    w_A <= sw;
+                elsif w_cycle = "0010" then
+                    w_B <= sw;
+            end if;
+        end if; 
+    end process w_input_clock;
+
     
     ALU_inst1 : ALU
         port map(
@@ -163,8 +172,7 @@ begin
     w_bin <= "00000000" when (w_cycle = "0001") else
              w_A when (w_cycle = "0010") else
              w_B when (w_cycle = "0100") else
-             w_result when (w_cycle = "1000") else
-             "00000000";
+             w_result when (w_cycle = "1000");
     w_sign(3 downto 1) <= "000";
     
     twos_comp_inst1 : twos_comp
@@ -195,8 +203,9 @@ begin
 	       o_seg_n => w_seg
 	   );
 	
-	seg <= "1111110" when  (w_sign = "0001") and (w_sel = "0111") else
-	   w_seg;
+	seg <= "0111111" when  (w_sign = "0001") and (w_sel = "0111") else
+           "1111111" when (w_sign = "0000") and (w_sel = "0111") else
+	       w_seg;
 	
 	
 	-- CONCURRENT STATEMENTS ----------------------------
