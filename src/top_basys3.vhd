@@ -114,15 +114,91 @@ architecture top_basys3_arch of top_basys3 is
     signal w_ones: std_logic_vector (3 downto 0);
     signal w_data: std_logic_vector (3 downto 0);
     signal w_result: std_logic_vector (7 downto 0);
+    signal w_adv: std_logic;
+    signal w_A: std_logic_vector (7 downto 0);
+    signal w_B: std_logic_vector (7 downto 0);
+    signal w_bin: std_logic_vector (7 downto 0);
+    signal w_hex: std_logic_vector (3 downto 0);
+    signal w_seg: std_logic_vector (6 downto 0);
+    signal w_sel: std_logic_vector (3 downto 0);
     
   
 begin
 	-- PORT MAPS ----------------------------------------
-
+    clkdiv_inst1 : clock_divider 		--instantiation of clock_divider to take 
+        generic map ( k_DIV => 100000) -- 1 Hz clock from 100 MHz
+        port map (						  
+            i_clk   => w_adv, 
+            i_reset => btnU,
+            o_clk   => w_clk
+        );
+    button_debounce_inst1 : button_debounce
+        port map(	
+            clk => w_clk,
+            reset => BtnU,
+            button => BtnC,
+            action => w_adv
+        );
+    controller_fsm_inst1 : controller_fsm
+        port map(
+            i_reset => BtnU,
+            i_adv => w_adv,
+            o_cycle => w_cycle
+        );
+        
+    w_A <= sw(7 downto 0) when (w_cycle = "0001");
+    
+    w_B <= sw(7 downto 0) when (w_cycle = "0010");
+    
+    ALU_inst1 : ALU
+        port map(
+            i_A => w_A,
+            i_B => w_B,
+            i_op => sw(2 downto 0),
+            o_result => w_result,
+            o_flags => led(15 downto 12) 
+        );          
+    w_bin <= "00000000" when (w_cycle = "0001") else
+             w_A when (w_cycle = "0010") else
+             w_B when (w_cycle = "0100") else
+             w_result when (w_cycle = "1000") else
+             "00000000";
+    w_sign(3 downto 1) <= "000";
+    
+    twos_comp_inst1 : twos_comp
+        port map(
+            i_bin => w_bin,
+            o_sign => w_sign(0),
+            o_hund => w_hund,
+            o_tens => w_tens,
+            o_ones => w_ones
+        );        
+           
+    TDM4_inst1 : TDM4
+        port map(
+            i_reset => BtnU,
+            i_clk => w_clk,
+            i_D3 => w_sign,
+            i_D2 => w_hund,
+            i_D1 => w_tens,
+            i_D0 => w_ones,
+            o_data => w_data,
+            o_sel => w_sel
+        );
+    an <= "1111" when (w_cycle = "0001") else
+        w_sel;    
+	sevenseg_decoder_inst1 : sevenseg_decoder
+	   port map(
+	       i_hex => w_hex,
+	       o_seg_n => w_seg
+	   );
+	
+	seg <= "1111110" when  (w_sign = "0001") and (w_sel = "0111") else
+	   w_seg;
 	
 	
 	-- CONCURRENT STATEMENTS ----------------------------
-	
+	led(11 downto 4) <= "00000000";
 	
 	
 end top_basys3_arch;
